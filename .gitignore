@@ -1,0 +1,5 @@
+# ignore the config folde, it has special things in it
+config.json
+
+# Also ignore the songs folder
+songs
