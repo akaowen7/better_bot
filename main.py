@@ -35,7 +35,8 @@ async def getSong(message, thisGuildsPlayer):
         return await message.channel.send("*You have to be in a voice channel to do that command*")
 
     if thisGuildsPlayer != None and thisGuildsPlayer.voiceClient.is_paused() and len(message.content.split(" ")) < 2:
-        await thisGuildsPlayer.unpause(message)
+        await thisGuildsPlayer.unpause()
+        await message.add_reaction("👍")
         return
 
     if len(message.content.split(" ")) < 2:
@@ -92,12 +93,53 @@ async def on_message(message):
     if command == 1:
         await getSong(message, thisGuildsPlayer)
     elif command == 2:
-        await thisGuildsPlayer.skip(message)
+        thisGuildsPlayer.skip()
+        await message.add_reaction("👍")
     elif command == 3:
-        await thisGuildsPlayer.pause(message)
+        thisGuildsPlayer.pause()
+        await message.channel.send("**Paused**, send the `play` command to resume")
     elif command == 4:
-        await thisGuildsPlayer.sendQueue(message)
+        thisGuildsPlayer.sendQueue()
     else:
         await message.channel.send(f"Not a command {args}")
+
+@client.event
+async def on_reaction_add(reaction, user):
+
+    thisGuildsPlayer = None
+    for i in players:
+        if i.guild == reaction.message.guild:
+            thisGuildsPlayer = i
+            break
+
+    if user.id == client.user.id:
+        if reaction.emoji == "⏭️":
+            thisGuildsPlayer.nowPlayingMessage = reaction.message
+        else:
+            return
+    
+    print(thisGuildsPlayer.nowPlayingMessage)
+    if user.bot: return
+
+    if thisGuildsPlayer == None:
+        return
+
+    if reaction.message == thisGuildsPlayer.nowPlayingMessage:
+
+        if reaction.emoji == "⏸" and not thisGuildsPlayer.voiceClient.is_paused():
+            await reaction.message.clear_reactions()
+            thisGuildsPlayer.pause()
+            for i in ["▶️", "⏭️"]:
+                await reaction.message.add_reaction(i)
+
+        if reaction.emoji == "▶️" and thisGuildsPlayer.voiceClient.is_paused():
+            await reaction.message.clear_reactions()
+            thisGuildsPlayer.unpause()
+            for i in ["⏸", "⏭️"]:
+                await reaction.message.add_reaction(i)
+        
+        if reaction.emoji == "⏭️":
+            thisGuildsPlayer.skip()
+
     
 client.run(config["token"])

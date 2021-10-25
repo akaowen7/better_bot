@@ -12,6 +12,7 @@ class Player():
         self.player = None
         self.voiceClient = None
         self.next = asyncio.Event()
+        self.nowPlayingMessage = None
 
     def afterPlay(self, e):
         print(f"Done playing {self.queue[0].name}\nException: ", e)
@@ -40,6 +41,7 @@ class Player():
             self.voiceClient.play(audio, after=self.afterPlay)
             
             sent = await self.channel.send(embed=self.playingEmbed(self.queue[0]))
+
             for i in ["⏸", "⏭️"]:
                 await sent.add_reaction(i)
 
@@ -50,17 +52,14 @@ class Player():
         await sentMessage.delete(delay=.8)
         await self.playNext()
     
-    async def skip(self, message):
+    def skip(self):
         self.voiceClient.stop()
-        await message.add_reaction("👍")
 
-    async def pause(self, message):
+    def pause(self):
         self.voiceClient.pause()
-        await message.channel.send("**Paused**, send the `play` command to resume")
     
-    async def unpause(self, message):
+    def unpause(self):
         self.voiceClient.resume()
-        await message.add_reaction("👍")
 
     async def sendQueue(self, message):
         if self.queue == []:
