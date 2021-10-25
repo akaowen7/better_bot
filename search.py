@@ -31,7 +31,7 @@ def OnComputer(messageText):
     
     return None
 
-async def OnYoutube(messageText):
+async def OnYoutube(messageText, sentMessage):
     yt = None
 
     if messageText.startswith("https://"):
@@ -42,14 +42,14 @@ async def OnYoutube(messageText):
             else:
                 yt = YouTube(messageText)
         except:
-            await message.channel.send("Invalid URL")
+            await sentMessage.edit(content="Invalid URL")
             return None
     else:
         print(f"Searching for: {messageText}")
         results = Search(messageText).results
 
         if results == None:
-            await message.channel.send(f"There dosent seem to be any results for **{messageText}**")
+            await sentMessage.edit(content=f"There dosent seem to be any results for **{messageText}**")
             return None
 
         yt = results[0]
@@ -62,14 +62,15 @@ async def OnYoutube(messageText):
     streams = yt.streams.filter(only_audio=True).order_by("abr")
 
     if streams == []:
-        await message.channel.send(f"**{messageText}** dosen't apear to have audio")
+        await sentMessage.edit(content=f"**{messageText}** dosen't apear to have audio")
         return None
 
+    await sentMessage.edit(content=f"Searching...\nDownlaoding **{yt.title}**...")
     stream = streams.last()
     print(f"Started downlaoding '{yt.title}'")
     path = stream.download(os.path.join(os.getcwd(), "songs"), f"{yt.vid_info['videoDetails']['videoId']} {yt.title}.mp3")
     print("Done downlaoding")
 
-    song = Song(path, yt.vid_info['videoDetails']['videoId'], yt.title, yt.thumbnail_url.replace("sddefault", "maxresdefault"), stream.filesize, int(time.time()))
+    song = Song(path, yt.vid_info['videoDetails']['videoId'], yt.title, yt.thumbnail_url.replace("sddefault", "maxresdefault"), stream.filesize, int(time.time()), yt.length)
     song.addToJson()
     return song
