@@ -39,9 +39,9 @@ async def getSong(message, thisGuildsPlayer):
         return
 
     if len(message.content.split(" ")) < 2:
-        return await message.channel.send(f"You have to put what you want to play after the command! Like `{config['prefix']}play fly me to the moon`")
+        return await message.channel.send(f"*You have to put what you want to play after the command!* Like `{config['prefix']}play fly me to the moon`")
 
-    sentMessage = await message.channel.send(f"Searching...")
+    sentMessage = await message.channel.send(f"**Searching** `{' '.join(message.content.split(' ')[1:])}`...")
 
     messageText = " ".join(message.content.split(" ")[1:])
 
@@ -51,15 +51,13 @@ async def getSong(message, thisGuildsPlayer):
         song = await search.OnYoutube(messageText, sentMessage)
         if song == None: return
 
-    await sentMessage.delete()
-
     if thisGuildsPlayer == None:
         thisGuildsPlayer = Player(message.guild, [song], message.channel)
         players.append(thisGuildsPlayer)
         await thisGuildsPlayer.joinAndPlay(message, sentMessage)
     else:
         thisGuildsPlayer.queue.append(song)
-        await message.add_reaction("👍")
+        await sentMessage.edit(content=f"**Added** `{song.name}` to queue")
 
 @client.event
 async def on_ready():
@@ -83,9 +81,13 @@ async def on_message(message):
         "p": 1,
         "skip": 2,
         "pause": 3,
-        "queue": 4
+        "queue": 4,
+        "q": 4
     }       
     command = commands[args[0].lower()]
+
+    if thisGuildsPlayer == None and command > 1:
+        await message.channel.send(f"**Nothing is playing right now!** Send `{config['prefix']}play` and a song to get started")
 
     if command == 1:
         await getSong(message, thisGuildsPlayer)
@@ -93,6 +95,8 @@ async def on_message(message):
         await thisGuildsPlayer.skip(message)
     elif command == 3:
         await thisGuildsPlayer.pause(message)
+    elif command == 4:
+        await thisGuildsPlayer.sendQueue(message)
     else:
         await message.channel.send(f"Not a command {args}")
     

@@ -25,7 +25,7 @@ def OnComputer(messageText):
                 return i    
     else:       
         for i in songList:
-            if i.name.lower() in messageText.lower() or messageText.lower() in i.name.lower():
+            if i.name.lower() in messageText.lower():
                 print("Found on computer through search")
                 return i
     
@@ -65,7 +65,7 @@ async def OnYoutube(messageText, sentMessage):
         await sentMessage.edit(content=f"**{messageText}** dosen't apear to have audio")
         return None
 
-    await sentMessage.edit(content=f"Searching...\nDownlaoding **{yt.title}**...")
+    await sentMessage.edit(content=f"**Downlaoding** `{yt.title}`...")
     stream = streams.last()
     print(f"Started downlaoding '{yt.title}'")
     path = stream.download(os.path.join(os.getcwd(), "songs"), f"{yt.vid_info['videoDetails']['videoId']} {yt.title}.mp3")
