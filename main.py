@@ -23,12 +23,13 @@ class Song():
         self.fileSize = fileSize
         self.dateAdded = dateAdded
 
+    def addToJson(self):
         songList.append(self)
 
         tempList = [{"filePath": i.filePath, "songId": i.songId, "name": i.name, "thumbnail": i.thumbnail, "fileSize": i.fileSize, "dateAdded": i.dateAdded} for i in songList]
         data = {}
         data["songs"] = tempList
-        json.dump(data, open('song_list.json', 'w'))
+        json.dump(data, open('song_list.json', 'w'), indent=4)
 
 if not os.path.isfile("./song_list.json"):
     data = {}
@@ -75,18 +76,31 @@ class Player():
         self.voiceClient = await message.author.voice.channel.connect()
         await self.playNext()
 
-def SearchSongsOnComputer(id, searchTerms):
-    # ToDo
-    return
+def SearchSongsOnComputer(messageText):
+    if messageText.startswith("https://"):
+        id = ""
 
-async def getSong(message, thisGuildsPlayer):
-    if len(message.content) < 2:
-        return await message.channel.send(f"You have to put what you want to play after the command! Like `{config['prefix']}play fly me to the moon`")
+        try:
+            if "https://youtu.be/" in messageText:
+                id = messageText.split(" ")[0].split("/")[-1]
+            else:
+                id = messageText.split(" ")[0].split("=")[-1]
+        except:
+            return None
 
-    if (message.author.voice == None):
-        return await message.channel.send("*You have to be in a voice channel to do that command*")
+        for i in songList:
+            if i.songId == id:
+                print("Found on computer through id")
+                return i    
+    else:       
+        for i in songList:
+            if i.name.lower() in messageText.lower() or messageText.lower() in i.name.lower():
+                print("Found on computer through search")
+                return i
+    
+    return None
 
-    messageText = " ".join(message.content.split(" ")[1:])
+async def SearchForSongOnYoutube(messageText):
     yt = None
 
     if messageText.startswith("https://"):
@@ -97,20 +111,28 @@ async def getSong(message, thisGuildsPlayer):
             else:
                 yt = YouTube(messageText)
         except:
-            return await message.channel.send("Invalid URL")
+            await message.channel.send("Invalid URL")
+            return None
     else:
         print(f"Searching for: {messageText}")
         results = Search(messageText).results
 
         if results == None:
-            return await message.channel.send(f"There dosent seem to be any results for **{messageText}**")
+            await message.channel.send(f"There dosent seem to be any results for **{messageText}**")
+            return None
 
         yt = results[0]
+    
+    compSong = SearchSongsOnComputer(yt.vid_info['videoDetails']['videoId'])
+    if compSong != None:
+        print("Found after online search")
+        return compSong
 
     streams = yt.streams.filter(only_audio=True).order_by("abr")
 
     if streams == []:
-        return await message.channel.send(f"**{messageText}** dosen't apear to have audio")
+        await message.channel.send(f"**{messageText}** dosen't apear to have audio")
+        return None
 
     stream = streams.last()
     print(f"Started downlaoding '{yt.title}'")
@@ -118,6 +140,23 @@ async def getSong(message, thisGuildsPlayer):
     print("Done downlaoding")
 
     song = Song(path, yt.vid_info['videoDetails']['videoId'], yt.title, yt.thumbnail_url.replace("sddefault", "maxresdefault"), stream.filesize, int(time.time()))
+    song.addToJson()
+    return song
+
+async def getSong(message, thisGuildsPlayer):
+    if len(message.content) < 2:
+        return await message.channel.send(f"You have to put what you want to play after the command! Like `{config['prefix']}play fly me to the moon`")
+
+    if (message.author.voice == None):
+        return await message.channel.send("*You have to be in a voice channel to do that command*")
+
+    messageText = " ".join(message.content.split(" ")[1:])
+
+    song = SearchSongsOnComputer(messageText)
+    if song == None:
+        print("No luck on computer")
+        song = await SearchForSongOnYoutube(messageText)
+        if song == None: return
 
     if thisGuildsPlayer == None:
         thisGuildsPlayer = Player(message.guild, [song], message.channel)
