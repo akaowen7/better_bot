@@ -1,20 +1,45 @@
 import discord
 import json
 import os
+import asyncio
+import time
 
 from pytube import YouTube
 from pytube import Search
 
 config = json.load(open("config.json"))
+
 client = discord.Client()
 
 players = []
+songList = []
 
 class Song():
-    def __init__(self, filePath, name, thumbnail):
+    def __init__(self, filePath, songId, name, thumbnail, fileSize, dateAdded):
         self.filePath = filePath
+        self.songId = songId
         self.name = name
         self.thumbnail = thumbnail
+        self.fileSize = fileSize
+        self.dateAdded = dateAdded
+
+        songList.append(self)
+
+        tempList = [{"filePath": i.filePath, "songId": i.songId, "name": i.name, "thumbnail": i.thumbnail, "fileSize": i.fileSize, "dateAdded": i.dateAdded} for i in songList]
+        data = {}
+        data["songs"] = tempList
+        json.dump(data, open('song_list.json', 'w'))
+
+if not os.path.isfile("./song_list.json"):
+    data = {}
+    data["songs"] = []
+    with open('song_list.json', 'w') as outfile:
+        json.dump(data, outfile)
+
+jsonSongList = json.load(open("song_list.json"))["songs"]
+
+for i in jsonSongList:
+    songList.append(Song(i["filePath"], i["songId"], i["name"], i["thumbnail"], i["fileSize"], i["dateAdded"]))
 
 class Player():
     def __init__(self, guild, queue, channel):
@@ -23,37 +48,43 @@ class Player():
         self.channel = channel
         self.player = None
         self.voiceClient = None
+        self.next = asyncio.Event()
+
+    def afterPlay(self, e):
+        print(f"Done playing {self.queue[0].name}\nException: ", e)
+        self.queue.pop(0)
+        self.next.set()
 
     async def playNext(self):  
-        if self.queue == []:
-            players.remove(self)
-            self.voiceClient.disconnect()
-            del self
-            return # not sure if this will happen
+        while True:
+            self.next.clear()
 
-        async def afterPlay(e):
-            print(f"Done playing {queue[0].name}\nException: ", e)
-            await self.voiceClient.disconnect()
-            self.queue.pop(0)
-            await playNext()
+            if self.queue == []:
+                await self.voiceClient.disconnect() 
+                players.remove(self)
+                break
+                # del self
 
-        print(f"Playing {self.queue[0].name}")
-        self.voiceClient.play(discord.FFmpegPCMAudio(self.queue[0].filePath), after=lambda e: afterPlay(e))
-        return await self.channel.send(f"Playing *{self.queue[0].name}*")
+            print(f"Playing {self.queue[0].name}")        
+            await self.channel.send(f"Playing **{self.queue[0].name}**")
+            self.voiceClient.play(discord.FFmpegPCMAudio(self.queue[0].filePath), after=self.afterPlay)
+
+            await self.next.wait()
     
     async def joinAndPlay(self, message):
-        user = message.author
-        if (user.voice.channel == None):
-            return await message.channel.send("You Have to be in a voice channel")
-
-        self.voiceClient = await user.voice.channel.connect()
-
+        self.voiceClient = await message.author.voice.channel.connect()
         await self.playNext()
 
+def SearchSongsOnComputer(id, searchTerms):
+    # ToDo
+    return
 
-async def getSong(message):
+async def getSong(message, thisGuildsPlayer):
     if len(message.content) < 2:
-        return await message.channel.send(f"You have to put want you want to play after the command! Like `{config['prefix']}play fly me to the moon`")
+        return await message.channel.send(f"You have to put what you want to play after the command! Like `{config['prefix']}play fly me to the moon`")
+
+    if (message.author.voice == None):
+        return await message.channel.send("*You have to be in a voice channel to do that command*")
 
     messageText = " ".join(message.content.split(" ")[1:])
     yt = None
@@ -76,18 +107,17 @@ async def getSong(message):
 
         yt = results[0]
 
-    t = yt.streams.filter(only_audio=True)
+    streams = yt.streams.filter(only_audio=True).order_by("abr")
+
+    if streams == []:
+        return await message.channel.send(f"**{messageText}** dosen't apear to have audio")
+
+    stream = streams.last()
     print(f"Started downlaoding '{yt.title}'")
-    path = t[0].download(os.path.join(os.getcwd(), "songs"), f"{yt.vid_info['videoDetails']['videoId']}.mp3")
+    path = stream.download(os.path.join(os.getcwd(), "songs"), f"{yt.vid_info['videoDetails']['videoId']} {yt.title}.mp3")
     print("Done downlaoding")
 
-    song = Song(path, yt.title, yt.thumbnail_url)
-    
-    thisGuildsPlayer = None
-    for i in players:
-        if i.guild == message.guild:
-            thisGuildsPlayer = i
-            break
+    song = Song(path, yt.vid_info['videoDetails']['videoId'], yt.title, yt.thumbnail_url.replace("sddefault", "maxresdefault"), stream.filesize, int(time.time()))
 
     if thisGuildsPlayer == None:
         thisGuildsPlayer = Player(message.guild, [song], message.channel)
@@ -107,8 +137,14 @@ async def on_message(message):
     
     args = message.content.replace(config["prefix"], "").split(" ")
 
+    thisGuildsPlayer = None
+    for i in players:
+        if i.guild == message.guild:
+            thisGuildsPlayer = i
+            break
+
     if args[0] == "play" or args[0] == "p":
-        await getSong(message)
+        await getSong(message, thisGuildsPlayer)
     else:
         await message.channel.send(f"Not a command {args}")
     
