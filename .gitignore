@@ -1,6 +1,9 @@
-# ignore the config folde, it has special things in it
+# ignore the config file
 config.json
 
 # Also ignore the songs stuff
 songs 
 song_list.json
+
+# python stuff 
+__pycache__
