@@ -1,4 +1,5 @@
 import json
+import os
 from globals import songList
 
 class Song():
@@ -22,5 +23,6 @@ class Song():
         self.rewriteJson()
 
     def delSelf(self):
+        os.remove(self.filePath)
         songList.remove(self)
         self.rewriteJson()

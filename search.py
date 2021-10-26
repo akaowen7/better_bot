@@ -7,28 +7,20 @@ import time
 from globals import songList
 from globals import maxSongLength
 from song import Song
+from manageSongs import checkSongs
 
 def OnComputer(messageText):
-    if messageText.startswith("https://"):
-        id = ""
-
-        try:
-            if "https://youtu.be/" in messageText:
-                id = messageText.split(" ")[0].split("/")[-1]
-            else:
-                id = messageText.split(" ")[0].split("=")[-1]
-        except:
-            return None
-
-        for i in songList:
-            if i.songId == id:
-                print("Found on computer through id")
-                return i    
-    else:       
-        for i in songList:
-            if i.name.lower() in messageText.lower():
-                print("Found on computer through search")
-                return i
+    for i in songList:
+        if i.songId in messageText.lower():
+            print("Found on computer through id")
+            i.dateAdded = int(time.time())
+            i.rewriteJson()
+            return i  
+        if i.name.lower() in messageText.lower():
+            print("Found on computer through search")
+            i.dateAdded = int(time.time())
+            i.rewriteJson()
+            return i
     
     return None
 
@@ -56,6 +48,7 @@ async def OnYoutube(messageText, sentMessage):
         yt = results[0]
     
     compSong = OnComputer(f"https://www.youtube.com/watch?v={yt.vid_info['videoDetails']['videoId']}")
+
     if compSong != None:
         print("Found on computer after online search")
         return compSong
@@ -74,6 +67,8 @@ async def OnYoutube(messageText, sentMessage):
     print(f"Started downlaoding '{yt.title}'")
     path = stream.download(os.path.join(os.getcwd(), "songs"), f"{yt.vid_info['videoDetails']['videoId']}.mp3")
     print("Done downlaoding")
+
+    checkSongs()
 
     song = Song(path, yt.vid_info['videoDetails']['videoId'], yt.title, yt.thumbnail_url.replace("sddefault", "maxresdefault"), stream.filesize, int(time.time()), yt.length)
     song.addToJson()

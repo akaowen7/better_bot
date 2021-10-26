@@ -7,7 +7,7 @@ players = []
 # Max length of time to keep a song downlaoded 
 # since it was last used (In seconds (I'm sorry))
 # default: 1 week (604800 seconds)
-maxSongDate = 604800
+maxSongDate = 200
 
 # Max size of the song folder before it starts
 # before it starts deleting songs (In bytes)
@@ -17,3 +17,9 @@ maxSongFolderSize = 524288000
 # Max length of a song it will download (in seconds)
 # default: 2 hours (7200 seconds)
 maxSongLength = 7200
+
+# How often to run the file cleanup script that deletes
+# old songs, and deletes songs when the song folder is
+# to large (in seconds)
+# default: Every 15 seconds
+cleanUpInterval = 15
