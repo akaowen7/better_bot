@@ -11,10 +11,16 @@ class Song():
         self.dateAdded = dateAdded
         self.length = length
 
-    def addToJson(self):
-        songList.append(self)
-
+    def rewriteJson(self):
         tempList = [{"filePath": i.filePath, "songId": i.songId, "name": i.name, "thumbnail": i.thumbnail, "fileSize": i.fileSize, "dateAdded": i.dateAdded, "length": i.length} for i in songList]
         data = {}
         data["songs"] = tempList
         json.dump(data, open('song_list.json', 'w'), indent=4)
+
+    def addToJson(self):
+        songList.append(self)
+        self.rewriteJson()
+
+    def delSelf(self):
+        songList.remove(self)
+        self.rewriteJson()

@@ -78,28 +78,52 @@ async def on_message(message):
             break
 
     commands = {
+        "help": 0,
+        "h": 0,
+        "commands": 0,
         "play": 1,
         "p": 1,
         "skip": 2,
         "pause": 3,
+        "h": 3,
         "queue": 4,
-        "q": 4
+        "q": 4,
+        "leave": 5,
+        "fuckoff": 5,
+        "quit": 5
     }       
     command = commands[args[0].lower()]
+
+    if command == 0:
+        emb = discord.Embed(title = "Help", description = "", color=0x1CB8B1)
+        emb.set_author(name=message.guild.name, icon_url="https://cdn.discordapp.com/avatars/654147464357609519/03a12bea6dc1d7600fb41c0317445f4a.png?size=4096")
+        emb.add_field(name=f"{config['prefix']}play <song>", value=f"Plays the song off youtube, can accept a title or a link.\nAlisis: `{config['prefix']}p`", inline=False)
+        emb.add_field(name=f"{config['prefix']}skip", value=f"Skips to the next song in queue. If there is none, tells the bot to leave\nAlisis: see what happens when you send `{config['prefix']}s`", inline=False)
+        emb.add_field(name=f"{config['prefix']}pause", value=f"Pauses the current song\nAlisis: `{config['prefix']}h`", inline=False)
+        emb.add_field(name=f"{config['prefix']}queue", value=f"Displays the queue of songs to be played\nAlisis: `{config['prefix']}q`", inline=False)
+        emb.add_field(name=f"{config['prefix']}leave", value=f"Makes the bot leave the chat, current queue is lost\nAlisis: `{config['prefix']}fuckoff` `{config['prefix']}quit`", inline=False)
+        await message.channel.send(embed=emb)
 
     if thisGuildsPlayer == None and command > 1:
         await message.channel.send(f"**Nothing is playing right now!** Send `{config['prefix']}play` and a song to get started")
 
     if command == 1:
         await getSong(message, thisGuildsPlayer)
-    elif command == 2:
+        return
+    
+    if thisGuildsPlayer.voiceClient.channel != message.author.voice.channel:
+        await message.channel.send(f"*You need to be in the audio channel where I am to do that*")
+
+    if command == 2:
         thisGuildsPlayer.skip()
         await message.add_reaction("👍")
     elif command == 3:
         thisGuildsPlayer.pause()
         await message.channel.send("**Paused**, send the `play` command to resume")
     elif command == 4:
-        thisGuildsPlayer.sendQueue()
+        await thisGuildsPlayer.sendQueue(message)
+    elif command == 5:
+        thisGuildsPlayer.fuckoff()
     else:
         await message.channel.send(f"Not a command {args}")
 
@@ -118,7 +142,6 @@ async def on_reaction_add(reaction, user):
         else:
             return
     
-    print(thisGuildsPlayer.nowPlayingMessage)
     if user.bot: return
 
     if thisGuildsPlayer == None:

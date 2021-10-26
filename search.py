@@ -5,6 +5,7 @@ import os
 import time
 
 from globals import songList
+from globals import maxSongLength
 from song import Song
 
 def OnComputer(messageText):
@@ -65,10 +66,13 @@ async def OnYoutube(messageText, sentMessage):
         await sentMessage.edit(content=f"**{messageText}** dosen't apear to have audio")
         return None
 
+    if yt.length > maxSongLength:
+        await sentMessage.edit(content=f"*The video I found is over 2 hours so uh, no*")
+
     await sentMessage.edit(content=f"**Downlaoding** `{yt.title}`...")
     stream = streams.last()
     print(f"Started downlaoding '{yt.title}'")
-    path = stream.download(os.path.join(os.getcwd(), "songs"), f"{yt.vid_info['videoDetails']['videoId']} {yt.title}.mp3")
+    path = stream.download(os.path.join(os.getcwd(), "songs"), f"{yt.vid_info['videoDetails']['videoId']}.mp3")
     print("Done downlaoding")
 
     song = Song(path, yt.vid_info['videoDetails']['videoId'], yt.title, yt.thumbnail_url.replace("sddefault", "maxresdefault"), stream.filesize, int(time.time()), yt.length)
