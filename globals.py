@@ -1,7 +1,3 @@
-# These are where the bot stores info, no touch
-songList = []
-players = []
-
 # These are settings you can change
 
 # Max length of time to keep a song downlaoded 
@@ -17,3 +13,19 @@ maxSongFolderSize = 524288000
 # Max length of a song it will download (in seconds)
 # default: 2 hours (7200 seconds)
 maxSongLength = 7200
+
+# Song the bot will play if no song is specified. If
+# you dont want a defult song set it to ""
+# default: "Fly Me To The Moon"
+defaultSong = "Fly Me To The Moon"
+
+
+# ===============================================================
+# ===============================================================
+
+
+# These are things you CAN'T change
+# NO TOUCH!
+songList = []
+players = []
+# NO TOUCH!

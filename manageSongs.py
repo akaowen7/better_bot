@@ -17,6 +17,10 @@ def checkSongs():
     songsToBeDeleted = []
 
     for i in globals.songList:
+        if i.neverDelete:
+            print(f"{i.name} has never delete")
+            continue
+
         if int(time.time()) - i.dateAdded > globals.maxSongDate:
             songsToBeDeleted.append(i)
     
@@ -35,6 +39,9 @@ def checkSongs():
         song = s[0]
         if any([song in i.queue for i in globals.players]):
             print(f"{song.name} is in a queue, cannot be deleted")
+            s.pop(0)
+        elif song.neverDelete:
+            print(f"{song.name} has never delete property, cannot be deleted")
             s.pop(0)
         else:
             print(f"deleteing {song.name}...")

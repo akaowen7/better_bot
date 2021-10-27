@@ -72,6 +72,6 @@ async def OnYoutube(messageText, sentMessage):
 
     checkSongs()
 
-    song = Song(path, yt.vid_info['videoDetails']['videoId'], yt.title, yt.thumbnail_url.replace("sddefault", "maxresdefault"), stream.filesize, int(time.time()), yt.length)
+    song = Song(path, yt.vid_info['videoDetails']['videoId'], yt.title, yt.thumbnail_url.replace("sddefault", "maxresdefault"), stream.filesize, int(time.time()), yt.length, False)
     song.addToJson()
     return song

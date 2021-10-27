@@ -57,11 +57,19 @@ class Player():
     def skip(self):
         self.voiceClient.stop()
 
-    def pause(self):
+    async def pause(self):
         self.voiceClient.pause()
+
+        await self.nowPlayingMessage.clear_reactions()
+        for i in ["▶️", "⏭️"]:
+            await self.nowPlayingMessage.add_reaction(i)
     
-    def unpause(self):
+    async def unpause(self):
         self.voiceClient.resume()
+
+        await self.nowPlayingMessage.clear_reactions()
+        for i in ["⏸", "⏭️"]:
+            await self.nowPlayingMessage.add_reaction(i)
     
     def fuckoff(self):
         self.queue = [self.queue[0]]
