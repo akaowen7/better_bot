@@ -29,6 +29,8 @@ jsonSongList = json.load(open("song_list.json"))["songs"]
 for i in jsonSongList:
     songList.append(Song(i["filePath"], i["songId"], i["name"], i["thumbnail"], i["fileSize"], i["dateAdded"], i["length"]))
 
+print(songList)
+
 async def getSong(message, thisGuildsPlayer):
 
     if message.author.voice == None:

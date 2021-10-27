@@ -12,6 +12,12 @@ class Song():
         self.dateAdded = dateAdded
         self.length = length
 
+    def __str__(self):
+        return f"{self.name}, {self.songId}"
+
+    def __repr__(self):
+        return f"{self.name}, {self.songId}"
+
     def rewriteJson(self):
         tempList = [{"filePath": i.filePath, "songId": i.songId, "name": i.name, "thumbnail": i.thumbnail, "fileSize": i.fileSize, "dateAdded": i.dateAdded, "length": i.length} for i in songList]
         data = {}

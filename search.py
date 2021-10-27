@@ -11,7 +11,7 @@ from manageSongs import checkSongs
 
 def OnComputer(messageText):
     for i in songList:
-        if i.songId in messageText.lower():
+        if i.songId in messageText or i.songId == messageText:
             print("Found on computer through id")
             i.dateAdded = int(time.time())
             i.rewriteJson()
@@ -47,7 +47,7 @@ async def OnYoutube(messageText, sentMessage):
 
         yt = results[0]
     
-    compSong = OnComputer(f"https://www.youtube.com/watch?v={yt.vid_info['videoDetails']['videoId']}")
+    compSong = OnComputer(yt.vid_info['videoDetails']['videoId'])
 
     if compSong != None:
         print("Found on computer after online search")
@@ -60,7 +60,9 @@ async def OnYoutube(messageText, sentMessage):
         return None
 
     if yt.length > maxSongLength:
-        await sentMessage.edit(content=f"*The video I found is over 2 hours so uh, no*")
+        print("Song was too long")
+        await sentMessage.edit(content=f"*The video I found is over 2 hours. So, uh, no*")
+        return None
 
     await sentMessage.edit(content=f"**Downlaoding** `{yt.title}`...")
     stream = streams.last()

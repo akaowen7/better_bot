@@ -17,7 +17,6 @@ def checkSongs():
     songsToBeDeleted = []
 
     for i in globals.songList:
-        print(int(time.time()) - i.dateAdded)
         if int(time.time()) - i.dateAdded > globals.maxSongDate:
             songsToBeDeleted.append(i)
     

@@ -46,6 +46,8 @@ class Player():
                 await sent.add_reaction(i)
 
             await self.next.wait()
+
+            await sent.clear_reactions()
     
     async def joinAndPlay(self, message, sentMessage):
         self.voiceClient = await message.author.voice.channel.connect()
