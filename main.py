@@ -73,16 +73,19 @@ async def on_message(message):
         emb.add_field(name=f"{config['prefix']}queue", value=f"Displays the queue of songs to be played\nAlisis: `{config['prefix']}q`", inline=False)
         emb.add_field(name=f"{config['prefix']}leave", value=f"Makes the bot leave the chat, current queue is lost\nAlisis: `{config['prefix']}fuckoff` `{config['prefix']}quit`", inline=False)
         await message.channel.send(embed=emb)
+        return
 
     if thisGuildsPlayer == None and command > 1:
         await message.channel.send(f"**Nothing is playing right now!** Send `{config['prefix']}play` and a song to get started")
+        return
 
     if command == 1:
         await getSong(message, thisGuildsPlayer)
         return
     
-    if thisGuildsPlayer.voiceClient.channel != message.author.voice.channel:
-        await message.channel.send(f"*You need to be in the audio channel where I am to do that*")
+    if message.author.voice == None or thisGuildsPlayer.voiceClient.channel != message.author.voice.channel:
+        await message.channel.send(f"*You need to be in the voice channel where I am to do that*")
+        return
 
     if command == 2:
         thisGuildsPlayer.skip()
