@@ -5,6 +5,8 @@ from player import Player
 from globals import defaultSong
 from globals import players
 
+config = json.load(open("config.json"))
+
 async def getSong(message, thisGuildsPlayer):
 
     if message.author.voice == None:
