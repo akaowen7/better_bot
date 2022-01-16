@@ -4,3 +4,7 @@ song_list.json
 
 # python stuff 
 __pycache__
+ffmpeg.exe
+
+# Stops the config from going public
+config.json

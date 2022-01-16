@@ -1,22 +1,16 @@
 import discord
 import json
 import os
-import asyncio
-import time
 
 from globals import songList
 from globals import players
-
-from pytube import YouTube
-from pytube import Search
+from globals import commands
 
 config = json.load(open("config.json"))
 
 client = discord.Client()
 
 from song import Song
-from player import Player
-import search
 from getSong import getSong
 
 if not os.path.isfile("./song_list.json"):
@@ -34,35 +28,13 @@ for i in jsonSongList:
 async def on_ready():
     print(f"Logged in as {client.user}")
 
-@client.event
-async def on_message(message):
-    if message.author.bot: return
-    if not message.content.startswith(config["prefix"]): return
-    
-    args = message.content.replace(config["prefix"], "").split(" ")
+async def musicCommands(command, message):
 
     thisGuildsPlayer = None
     for i in players:
         if i.guild == message.guild:
             thisGuildsPlayer = i
             break
-
-    commands = {
-        "help": 0,
-        "h": 0,
-        "commands": 0,
-        "play": 1,
-        "p": 1,
-        "skip": 2,
-        "pause": 3,
-        "h": 3,
-        "queue": 4,
-        "q": 4,
-        "leave": 5,
-        "fuckoff": 5,
-        "quit": 5
-    }       
-    command = commands[args[0].lower()]
 
     if command == 0:
         emb = discord.Embed(title = "Help", description = "", color=0x1CB8B1)
@@ -97,8 +69,30 @@ async def on_message(message):
         await thisGuildsPlayer.sendQueue(message)
     elif command == 5:
         thisGuildsPlayer.fuckoff()
-    else:
+
+async def mcCommands(command, message):
+    if command == 6:
+        # await message.channel.send(f"Not a command {args}")
+        pass
+
+@client.event
+async def on_message(message):
+    if message.author.bot: return
+    if not message.content.startswith(config["prefix"]): return
+    
+    args = message.content.replace(config["prefix"], "").split(" ")
+   
+    if args[0].lower() not in commands:
         await message.channel.send(f"Not a command {args}")
+        return
+
+    command = commands[args[0].lower()]
+
+    if command <= 5:
+        await musicCommands(command, message)
+    else:
+        mcCommands(command, message)
+
 
 @client.event
 async def on_reaction_add(reaction, user):

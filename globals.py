@@ -28,4 +28,22 @@ defaultSong = "Fly Me To The Moon"
 # NO TOUCH!
 songList = []
 players = []
+
+commands = {
+    "help": 0,
+    "h": 0,
+    "commands": 0,
+    "play": 1,
+    "p": 1,
+    "skip": 2,
+    "pause": 3,
+    "h": 3,
+    "queue": 4,
+    "q": 4,
+    "leave": 5,
+    "fuckoff": 5,
+    "quit": 5,
+    # "on": 6,
+    # "off": 7
+}    
 # NO TOUCH!

@@ -1,6 +1,5 @@
 import search
 
-from song import Song
 from player import Player
 from globals import defaultSong
 from globals import players
